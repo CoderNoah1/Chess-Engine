@@ -1,7 +1,9 @@
 import { pieces } from "../pieces.js";
 import { isValidMove } from "./isValidMove.js";
 
-export function getChessNotation(piece, fromRow, fromCol, toRow, toCol, isCapture, isCheck, isCheckMate) {
+export function getChessNotation(move) {
+    const { isKingSideCastle, isQueenSideCastle, piece, fromRow, fromCol, toRow, toCol, isCapture, isCheck, isCheckMate, promotedTo } = move
+
     if (piece === pieces.emptySquare) return false
     // if (!isValidMove(piece, fromRow, fromCol, toRow, toCol)) return false
     
@@ -11,6 +13,7 @@ export function getChessNotation(piece, fromRow, fromCol, toRow, toCol, isCaptur
     let specifiedFromPart = "";
     let capturePart = "";
     let toSqurePart = "";
+    let promotedPart = "";
     let checkOrCheckMatePart = "";
 
     const rowMap = { 0: "8", 1: "7", 2: "6", 3: "5", 4: "4", 5: "3", 6: "2", 7: "1" };
@@ -19,6 +22,11 @@ export function getChessNotation(piece, fromRow, fromCol, toRow, toCol, isCaptur
     if (isCapture) capturePart = "x";
     if (isCheck) checkOrCheckMatePart = "+";
     if (isCheckMate) checkOrCheckMatePart = "#";
+    if (isKingSideCastle) return "O-O";
+    if (isQueenSideCastle) return "O-O-O";
+    if (promotedTo !== null) {
+        promotedPart = `=${promotedTo}`;
+    }
     toSqurePart = `${colMap[toCol]}${rowMap[toRow]}`;
 
     const basePiece = piece.replace("white", "").replace("black", "");
@@ -44,8 +52,7 @@ export function getChessNotation(piece, fromRow, fromCol, toRow, toCol, isCaptur
     }
     
 
-    chessNotation = `${piecePart}${specifiedFromPart}${capturePart}${toSqurePart}${checkOrCheckMatePart}`;
+    chessNotation = `${piecePart}${specifiedFromPart}${capturePart}${toSqurePart}${promotedPart}${checkOrCheckMatePart}`;
 
     return chessNotation;
 }
-

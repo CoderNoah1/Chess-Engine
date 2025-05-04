@@ -1,5 +1,5 @@
-import { board } from "../../board.js";
-import { pieces } from "../../pieces.js";
+import { board } from "../board.js";
+import { pieces } from "../pieces.js";
 
 export function evaluateBoard(board) {
     const PIECE_VALUES = {

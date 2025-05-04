@@ -1,10 +1,17 @@
 import { pieces } from './pieces.js';
 import { isValidMove } from './utils/isValidMove.js';
-import { getMovesForPiece, getDetailedMovesForPiece } from './utils/getBestMove.js';
+import { getMovesForPiece } from './utils/getAllLegalMoves.js';
 
 export class Board {
     constructor() {
         this.reset();
+        this.colorToMove = "white";
+        
+        // Castling rights
+        this.whiteCanCastleKingSide  = true;   // O‑O
+        this.whiteCanCastleQueenSide = true;   // O‑O‑O
+        this.blackCanCastleKingSide  = true;
+        this.blackCanCastleQueenSide = true;
     }
 
     reset() {
@@ -48,7 +55,41 @@ export class Board {
         this.board = Array(8).fill(null).map(() => Array(8).fill(pieces.emptySquare));
     }
 
+    getColorToMove() {
+        return this.colorToMove;
+    }
+
+    setColorToMove(colorToMove) {
+        this.colorToMove = colorToMove;
+    }
+
+    getCastlingRights(side) {
+        switch (side) {
+            case "K": return this.whiteCanCastleKingSide;
+            case "Q": return this.whiteCanCastleQueenSide;
+            case "k": return this.blackCanCastleKingSide;
+            case "q": return this.blackCanCastleQueenSide;
+            default: return {
+                whiteCanCastleKingSide: this.whiteCanCastleKingSide,
+                whiteCanCastleQueenSide: this.whiteCanCastleQueenSide,
+                blackCanCastleKingSide: this.blackCanCastleKingSide,
+                blackCanCastleQueenSide: this.blackCanCastleQueenSide
+            };
+        }
+    }
+
+    setCastlingRight(side, value) {
+        switch (side) {
+            case "K": this.whiteCanCastleKing  = !!value; break;
+            case "Q": this.whiteCanCastleQueen = !!value; break;
+            case "k": this.blackCanCastleKing  = !!value; break;
+            case "q": this.blackCanCastleQueen = !!value; break;
+            default:  throw new Error("Unknown castling side: " + side);
+        }
+    }
+
     getSquare(row, col) {
+        if (row < 0 || row > 7 || col < 0 || col > 7) return false
         return this.board[row][col];
     }
 
@@ -105,6 +146,7 @@ export class Board {
                 targetPiece === pieces.blackKing
             );
         }
+
         return false;
     }
 
@@ -121,7 +163,31 @@ export class Board {
         const target = this.board[toRow][toCol];
         const color = piece.includes("white") ? "white" : piece.includes("black") ? "black" : null
 
-        if (isValidMove(piece, fromRow, fromCol, toRow, toCol) === false) return false;
+        if (isValidMove(piece, fromRow, fromCol, toRow, toCol) === false) return "Move is not Valid";
+
+        // ── update castling flags ───────────────────────────
+        if (piece === pieces.whiteKing) {
+            this.whiteCanCastleKingSide  = false;
+            this.whiteCanCastleQueenSide = false;
+        } else if (piece === pieces.blackKing) {
+            this.blackCanCastleKingSide  = false;
+            this.blackCanCastleQueenSide = false;
+        } else if (piece === pieces.whiteRook) {
+            if (fromRow === 7 && fromCol === 0) this.whiteCanCastleQueenSide = false; // a1 rook moved
+            if (fromRow === 7 && fromCol === 7) this.whiteCanCastleKingSide  = false; // h1 rook moved
+        } else if (piece === pieces.blackRook) {
+            if (fromRow === 0 && fromCol === 0) this.blackCanCastleQueenSide = false; // a8 rook moved
+            if (fromRow === 0 && fromCol === 7) this.blackCanCastleKingSide  = false; // h8 rook moved
+        }
+
+        // Also revoke the right if that rook is **captured**
+        if (target === pieces.whiteRook) {
+            if (toRow === 7 && toCol === 0) this.whiteCanCastleQueenSide = false;
+            if (toRow === 7 && toCol === 7) this.whiteCanCastleKingSide  = false;
+        } else if (target === pieces.blackRook) {
+            if (toRow === 0 && toCol === 0) this.blackCanCastleQueenSide = false;
+            if (toRow === 0 && toCol === 7) this.blackCanCastleKingSide  = false;
+        }
 
         if (color === "white") {
             if (!piece.includes("white")) return false;
@@ -181,6 +247,38 @@ export class Board {
         }
     
         return false;
+    }
+
+    loadFENCode(FENCode) {
+        const parts = FENCode.split(" ");
+        const piecePlacement = parts[0];
+        const rows = piecePlacement.split("/");
+        const FENToPieceMap = { "r": pieces.blackRook, "n": pieces.blackKnight, "b": pieces.blackBishop, "q": pieces.blackQueen, "k": pieces.blackKing, "p": pieces.blackPawn, "R": pieces.whiteRook, "N": pieces.whiteKnight, "B": pieces.whiteBishop, "Q": pieces.whiteQueen, "K": pieces.whiteKing, "P": pieces.whitePawn, }
+
+        for (let row = 0; row < 8; row++) {
+            let col = 0;
+            for (const char of rows[row]) {
+                if (isNaN(char)) {
+                    this.board[row][col] = FENToPieceMap[char];
+                    col++;
+                } else {
+                    const emptyCount = parseInt(char);
+                    for (let i = 0; i < emptyCount; i++) {
+                        this.board[row][col] = pieces.emptySquare;
+                        col++;
+                    }
+                }
+            }
+        }
+
+        const colorToMove = parts[1] === "w" ? "white" : "black";
+        this.setColorToMove(colorToMove); 
+
+        const castlingRights = parts[2];   // "KQkq" or "-" etc.
+        this.whiteCanCastleKingSide  = castlingRights.includes("K");
+        this.whiteCanCastleQueenSide = castlingRights.includes("Q");
+        this.blackCanCastleKingSide  = castlingRights.includes("k");
+        this.blackCanCastleQueenSide = castlingRights.includes("q");
     }
 }
 

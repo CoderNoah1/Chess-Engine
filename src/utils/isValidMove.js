@@ -96,7 +96,7 @@ export function isValidMove(piece, fromRow, fromCol, toRow, toCol) {
                 // Initial double move
                 (fromRow === 1 && fromCol === toCol && toRow - fromRow === 2 && isEmptySquare(fromRow + 1, toCol) && isEmptySquare(toRow, toCol)) ||
                 // Capture move
-                (Math.abs(fromCol - toCol) === 1 && isSquareOccupiedByWhitePiece(toRow, toCol) && fromRow - toRow === 1)
+                (Math.abs(fromCol - toCol) === 1 && isSquareOccupiedByWhitePiece(toRow, toCol) && fromRow - toRow === - 1)
             );
         case pieces.blackRook:
             return (
@@ -110,17 +110,17 @@ export function isValidMove(piece, fromRow, fromCol, toRow, toCol) {
                 (Math.abs(fromRow - toRow) === 1 && Math.abs(fromCol - toCol) === 2)) &&
                 (isEmptySquare(toRow, toCol) || isSquareOccupiedByWhitePiece(toRow, toCol))
             );
-        case pieces.whiteBishop:
+        case pieces.blackBishop:
             return (
                 Math.abs(fromRow - toRow) === Math.abs(fromCol - toCol) &&
                 (isSquareOccupiedByWhitePiece(toRow, toCol) || isEmptySquare(toRow, toCol))
             );
-        case pieces.whiteQueen:
+        case pieces.blackQueen:
             return (
                 fromRow === toRow || fromCol === toCol || Math.abs(fromRow - toRow) === Math.abs(fromCol - toCol) &&
                 (isSquareOccupiedByWhitePiece(toRow, toCol) || isEmptySquare(toRow, toCol))
             );
-        case pieces.whiteKing:
+        case pieces.blackKing:
             return (
                 (Math.abs(fromRow - toRow) <= 1 && Math.abs(fromCol - toCol) <= 1) &&
                 (isSquareOccupiedByWhitePiece(toRow, toCol) || isEmptySquare(toRow, toCol))
