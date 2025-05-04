@@ -7,14 +7,14 @@ import { board } from "./board.js";
 import { getBestMove } from "./utils/getBestMove.js";
 import { getChessNotation } from "./utils/getChessNotation.js";
 
+board.loadFENCode("1R6/p1p5/k6p/2P5/7K/8/P5qP/4q3 w - - 0 35")
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 })
 
-export let colorTurn = "white";
-
-function updateBoard (board, move) {
+export function updateBoard (board, move) {
     const { isKingSideCastle, isQueenSideCastle, piece, fromRow, fromCol, toRow, toCol, pieceSecondary, isCapture, isCheck, isCheckMate, promotedTo } = move;
 
     const color = piece.includes("white") ? "white" : piece.includes("black") ? "black" : null
@@ -25,8 +25,8 @@ function updateBoard (board, move) {
     }
 
     if (isKingSideCastle || isQueenSideCastle) {
-        board.movePiece(fromRow, fromCol, toRow, toCol);
-        board.movePiece(pieceSecondary.fromRow, pieceSecondary.fromCol, pieceSecondary.toRow, pieceSecondary.toCol);
+        board.movePiece(fromRow, fromCol, toRow, toCol, true);
+        board.movePiece(pieceSecondary.fromRow, pieceSecondary.fromCol, pieceSecondary.toRow, pieceSecondary.toCol, true);
         return "true casteling";
     }
 
@@ -40,6 +40,8 @@ function updateBoard (board, move) {
     return "true normal move";
 }
 
+export let colorTurn = "white";
+
 function turn (board) {
 
     const engineMove = getBestMove(board, true);
@@ -47,16 +49,23 @@ function turn (board) {
     const chessNotationEngineMove = getChessNotation(engineMove);
 
     rl.question(chessNotationEngineMove + ": ", (move) => {
+
+        if (move.includes("#")) {
+            rl.write("Congrats you won!")
+            rl.close()
+            return
+        }
+
+        updateBoard(board, engineMove);
         // get index notation from chess notation
         const indexNotationPerson = getIndexNotation(board, move, colorTurn);
         colorTurn = "white";
 
         // update Board
-        updateBoard(board, engineMove);
         updateBoard(board, indexNotationPerson);
 
         turn(board);
     });
 }
-
 turn(board);
+

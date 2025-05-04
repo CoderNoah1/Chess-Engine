@@ -89,7 +89,7 @@ export function evaluateBoard(board) {
         let kingPosition = { row: -1, col: -1 }
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
-                if (board.getSquare(row, col) === "whiteKing") {
+                if (board.getSquare(row, col) === pieces.whiteKing) {
                     kingPosition = { row: row, col: col }
                 }
             }
@@ -145,7 +145,7 @@ export function evaluateBoard(board) {
             let rooksPositions = [];
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
-                    if (board.getSquare(row, col) === "whiteRook") {
+                    if (board.getSquare(row, col) === pieces.whiteRook) {
                         rooksPositions.push({ row: row, col: col })
                     }
                 }

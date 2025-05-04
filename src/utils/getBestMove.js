@@ -1,8 +1,10 @@
+import { updateBoard } from "../app.js";
+import { board } from "../board.js";
 import { pieces } from "../pieces.js";
 import { evaluateBoard } from "./evaluateBoard.js";
 import { getAllLegalDetailedMoves, getAllLegalMoves } from "./getAllLegalMoves.js";
 
-export function getBestMove (board, isWhiteToMove, depth = null) {
+export function getBestMove (board, isWhiteToMove, depth = 2) {
     // class MoveNode {
     //     constructor(board, move = null) {
     //         this.board = board; 
@@ -35,14 +37,28 @@ export function getBestMove (board, isWhiteToMove, depth = null) {
 
 
 
-    let bestMove = null
+    let bestMove = null;
+    let bestEval = isWhiteToMove ? -Infinity : Infinity;
 
-    const allLegalDetailedMoves = getAllLegalDetailedMoves(board, isWhiteToMove)
-    const randomIndex = Math.floor(Math.random() * allLegalDetailedMoves.length)
+    const allLegalMoves = getAllLegalDetailedMoves(board, isWhiteToMove);
 
-    bestMove = allLegalDetailedMoves[randomIndex];
+    for (let move of allLegalMoves) {
+        const simulatedBoard = board.clone();
+        updateBoard(simulatedBoard, move);
+
+        const evaluation = minimax(simulatedBoard, depth - 1, !isWhiteToMove, -Infinity, Infinity);
+
+        if (
+            (isWhiteToMove && evaluation > bestEval) ||
+            (!isWhiteToMove && evaluation < bestEval)
+        ) {
+            bestEval = evaluation;
+            bestMove = move;
+        }
+    }
 
     return bestMove;
+
     
 
     function buildMoveTree(board, depth, isWhiteToMove) {
@@ -64,26 +80,59 @@ export function getBestMove (board, isWhiteToMove, depth = null) {
         return root;
     }
 
-    function minimax(node, depth, maximizingPlayer) {
-        if (depth === 0 || node.children.length === 0) {
-            return evaluateBoard(node.board); // Return evaluation at leaf
+    function minimax(board, depth, isWhiteToMove, alpha, beta) {
+        if (depth === 0) {
+            return evaluateBoard(board);
         }
     
-        if (maximizingPlayer) {
+        const moves = getAllLegalDetailedMoves(board, isWhiteToMove);
+    
+        if (isWhiteToMove) {
             let maxEval = -Infinity;
-            for (let child of node.children) {
-                let evaluation = minimax(child, depth - 1, false);
-                maxEval = Math.max(maxEval, evaluation);
+            for (const move of moves) {
+                const simulatedBoard = board.clone();
+                updateBoard(simulatedBoard, move);
+                const evalu = minimax(simulatedBoard, depth - 1, false, alpha, beta);
+                maxEval = Math.max(maxEval, evalu);
+                alpha = Math.max(alpha, evalu);
+                if (beta <= alpha) break;
             }
             return maxEval;
         } else {
             let minEval = Infinity;
-            for (let child of node.children) {
-                let evaluation = minimax(child, depth - 1, true);
-                minEval = Math.min(minEval, evaluation);
+            for (const move of moves) {
+                const simulatedBoard = board.clone();
+                updateBoard(simulatedBoard, move);
+                const evalu = minimax(simulatedBoard, depth - 1, true, alpha, beta);
+                minEval = Math.min(minEval, evalu);
+                beta = Math.min(beta, evalu);
+                if (beta <= alpha) break;
             }
             return minEval;
         }
     }
     
+
+    // function minimax1(node, depth, maximizingPlayer) {
+    //     if (depth === 0 || node.children.length === 0) {
+    //         return evaluateBoard(node.board); // Return evaluation at leaf
+    //     }
+    
+    //     if (maximizingPlayer) {
+    //         let maxEval = -Infinity;
+    //         for (let child of node.children) {
+    //             let evaluation = minimax(child, depth - 1, false);
+    //             maxEval = Math.max(maxEval, evaluation);
+    //         }
+    //         return maxEval;
+    //     } else {
+    //         let minEval = Infinity;
+    //         for (let child of node.children) {
+    //             let evaluation = minimax(child, depth - 1, true);
+    //             minEval = Math.min(minEval, evaluation);
+    //         }
+    //         return minEval;
+    //     }
+    // }
+
 }

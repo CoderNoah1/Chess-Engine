@@ -114,8 +114,8 @@ export function getIndexNotation(board, chessNotation, colorToMove) {
     }
 
     // finding fromRow and fromCol
-    for (let row = 3; row < 4; row++) {
-        for (let col = 4; col < 5; col++) {
+    for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
             if (board.getSquare(row, col) === piece && isValidMove(piece, row, col, toRow, toCol)) {
                 if (fromRow !== -1 && fromCol !== -1) {
                     if (fromRow === row && fromCol === col) {
@@ -139,6 +139,8 @@ export function getIndexNotation(board, chessNotation, colorToMove) {
             }
         }
     }
+
+    // console.log("piece and cords in getIndexNotation: ", piece, fromRow, fromCol, toRow, toCol)
 
     if (piece === pieces.emptySquare || toRow === undefined || toCol === undefined || fromCol === -1 || fromRow === -1) return "false: invalid piece or cordinates";
 

@@ -157,13 +157,15 @@ export class Board {
         return cloned;
     }
 
-    movePiece(fromRow, fromCol, toRow, toCol) {
+    movePiece(fromRow, fromCol, toRow, toCol, isForce) {
         if (!this.inBounds(toRow, toCol)) return false
         const piece = this.board[fromRow][fromCol];
         const target = this.board[toRow][toCol];
         const color = piece.includes("white") ? "white" : piece.includes("black") ? "black" : null
 
-        if (isValidMove(piece, fromRow, fromCol, toRow, toCol) === false) return "Move is not Valid";
+        if (!isForce) {
+            if (isValidMove(piece, fromRow, fromCol, toRow, toCol) === false) return "Move is not Valid";
+        }
 
         // ── update castling flags ───────────────────────────
         if (piece === pieces.whiteKing) {
